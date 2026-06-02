@@ -7,7 +7,7 @@ const { generateOtp, saveOtp, verifyOtp } = require('../utils/otpStore');
 
 const router = express.Router();
 const STATIC_OTP = process.env.STATIC_OTP || '';
-const allowStaticOtp = process.env.NODE_ENV !== 'production' && !!STATIC_OTP;
+const allowStaticOtp = process.env.ENABLE_STATIC_OTP === 'true' && !!STATIC_OTP;
 
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
