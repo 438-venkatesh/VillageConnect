@@ -1,4 +1,7 @@
+const dns = require('dns');
 const nodemailer = require('nodemailer');
+
+dns.setDefaultResultOrder('ipv4first');
 
 let transporter;
 
@@ -15,11 +18,11 @@ function getTransporter() {
     host,
     port,
     secure: port === 465,
-    family: 4,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
     auth: { user, pass },
+    lookup: (hostname, _opts, cb) => dns.lookup(hostname, { family: 4 }, cb),
   });
   return transporter;
 }

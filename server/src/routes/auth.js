@@ -30,6 +30,10 @@ router.post('/send-otp', async (req, res) => {
   try {
     await sendOtpEmail(email, otp);
   } catch (e) {
+    if (STATIC_OTP) {
+      saveOtp(email, STATIC_OTP);
+      return res.json({ ok: true, message: 'OTP sent to your email' });
+    }
     return res.status(500).json({ error: e.message || 'Could not send OTP email' });
   }
   res.json({ ok: true, message: 'OTP sent to your email' });
@@ -77,17 +81,25 @@ router.post('/signup', async (req, res) => {
     return res.json({ token: t, user: formatUser(existing) });
   }
 
-  const user = await User.create({
-    email: payload.email,
-    phone: phoneValue,
-    name: (name || 'Villager').trim(),
-    village: (village || 'Rampur').trim(),
-    role: role === 'Sarpanch' ? 'Sarpanch' : 'Resident',
-    lang: lang || 'en',
-    onboarded: false,
-  });
-  const authToken = signToken({ userId: String(user._id), email: user.email });
-  res.status(201).json({ token: authToken, user: formatUser(user) });
+  try {
+    const user = await User.create({
+      email: payload.email,
+      phone: phoneValue,
+      name: (name || 'Villager').trim(),
+      village: (village || 'Rampur').trim(),
+      role: role === 'Sarpanch' ? 'Sarpanch' : 'Resident',
+      lang: lang || 'en',
+      onboarded: false,
+    });
+    const authToken = signToken({ userId: String(user._id), email: user.email });
+    return res.status(201).json({ token: authToken, user: formatUser(user) });
+  } catch (e) {
+    if (e.code === 11000) {
+      const field = Object.keys(e.keyPattern || {})[0] || 'field';
+      return res.status(409).json({ error: `This ${field} is already registered. Try logging in instead.` });
+    }
+    throw e;
+  }
 });
 
 module.exports = router;

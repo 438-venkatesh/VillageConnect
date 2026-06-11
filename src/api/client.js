@@ -47,6 +47,9 @@ async function request(path, options = {}) {
     if (e.name === 'AbortError') {
       throw new Error('Server not responding. Check your internet connection and try again.');
     }
+    if (e.message === 'Failed to fetch') {
+      throw new Error('Cannot reach API server. Start it with: cd server && npm run dev');
+    }
     throw e;
   } finally {
     clearTimeout(timeoutId);

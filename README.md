@@ -20,11 +20,11 @@ npm run seed
 npm run dev
 ```
 
-Local API runs at `http://localhost:4000` (development only).
+Local API runs at `http://192.168.1.8:4000` (development only). Update the IP in `src/config/api.js` if your Wi-Fi address differs.
 
-### App (uses production API)
+### App (uses LAN API)
 
-The mobile app always calls **`https://villageconnect-782o.onrender.com/api`** (see `src/config/api.js`).
+The app calls **`http://192.168.1.8:4000/api`** (see `src/config/api.js`). Start the API server first on the host machine.
 
 ```bash
 npm install
@@ -37,7 +37,7 @@ npx expo start
 npx eas build -p android --profile preview
 ```
 
-Or local APK: `npx expo run:android` (release build uses the same production API URL).
+Or local APK: `npx expo run:android`
 
 ## Demo logins (after seed)
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -8,6 +8,7 @@ import { PrimaryButton } from '../components/UI';
 import { colors, spacing, radius, font } from '../theme/theme';
 import { languageNames } from '../data/translations';
 import { safeGoBack } from '../utils/navigation';
+import { showAlert } from '../utils/alert';
 
 export default function SignupScreen({ navigation, route }) {
   const { t, setSession, lang, setLang } = useApp();
@@ -18,21 +19,34 @@ export default function SignupScreen({ navigation, route }) {
   const [email] = useState(presetEmail);
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const finish = async () => {
-    if (!name.trim()) { Alert.alert(t('fullName'), 'Please enter your name.'); return; }
-    if (!village.trim()) { Alert.alert(t('villageName'), 'Please enter your village name.'); return; }
+    setError('');
+    if (!name.trim()) {
+      setError('Please enter your full name.');
+      showAlert(t('fullName'), 'Please enter your name.');
+      return;
+    }
+    if (!village.trim()) {
+      setError('Please enter your village name.');
+      showAlert(t('villageName'), 'Please enter your village name.');
+      return;
+    }
     if (!email) {
-      Alert.alert('OTP required', 'Verify your email on the login screen first.');
+      setError('Verify your email on the login screen first.');
+      showAlert('OTP required', 'Verify your email on the login screen first.');
       navigation.replace('Login');
       return;
     }
     if (phone.replace(/\D/g, '').length < 10) {
-      Alert.alert(t('phoneNumber'), 'Please enter your 10-digit phone number.');
+      setError('Please enter a valid 10-digit phone number.');
+      showAlert(t('phoneNumber'), 'Please enter your 10-digit phone number.');
       return;
     }
     if (!signupToken) {
-      Alert.alert('OTP required', 'Verify your email on the login screen first.');
+      setError('Verify your email on the login screen first.');
+      showAlert('OTP required', 'Verify your email on the login screen first.');
       navigation.replace('Login');
       return;
     }
@@ -44,7 +58,9 @@ export default function SignupScreen({ navigation, route }) {
       );
       await setSession(res.token, res.user);
     } catch (e) {
-      Alert.alert('Signup failed', e.message || 'Could not create account');
+      const msg = e.message || 'Could not create account';
+      setError(msg);
+      showAlert('Signup failed', msg);
     } finally {
       setLoading(false);
     }
@@ -81,7 +97,15 @@ export default function SignupScreen({ navigation, route }) {
           <Text style={s.label}>{t('phoneNumber')}</Text>
           <View style={s.field}>
             <Ionicons name="call-outline" size={20} color={colors.textMuted} />
-            <TextInput style={s.input} placeholder="98765 43210" placeholderTextColor={colors.textMuted} keyboardType="phone-pad" maxLength={10} value={phone} onChangeText={setPhone} />
+            <TextInput
+              style={s.input}
+              placeholder="9876543210"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="phone-pad"
+              maxLength={10}
+              value={phone}
+              onChangeText={(v) => { setPhone(v.replace(/\D/g, '')); setError(''); }}
+            />
           </View>
 
           <Text style={s.label}>Email (verified)</Text>
@@ -109,7 +133,13 @@ export default function SignupScreen({ navigation, route }) {
             ))}
           </View>
 
-          <PrimaryButton label={t('continue')} icon="arrow-forward" onPress={finish} style={{ marginTop: spacing.xl }} />
+          {error ? <Text style={s.error}>{error}</Text> : null}
+          <PrimaryButton
+            label={loading ? 'Creating account…' : t('continue')}
+            icon="arrow-forward"
+            onPress={finish}
+            style={{ marginTop: spacing.xl }}
+          />
           <View style={{ height: spacing.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -143,4 +173,5 @@ const s = StyleSheet.create({
   },
   langChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   langText: { ...font.small, color: colors.text, fontWeight: '700' },
+  error: { ...font.small, color: '#c0392b', marginTop: spacing.lg, textAlign: 'center' },
 });

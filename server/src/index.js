@@ -8,6 +8,7 @@ const contentRoutes = require('./routes/content');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json({ limit: '2mb' }));
@@ -28,7 +29,7 @@ async function start() {
     process.env.JWT_SECRET = 'villageconnect-dev-secret-change-me';
   }
   await connectDB();
-  app.listen(PORT, () => console.log(`VillageConnect API http://localhost:${PORT}`));
+  app.listen(PORT, HOST, () => console.log(`VillageConnect API http://192.168.1.8:${PORT}`));
 }
 
 start().catch((e) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { showAlert } from '../utils/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -13,20 +14,26 @@ export default function LoginScreen({ navigation }) {
   const [otp, setOtp] = useState('');
   const [stage, setStage] = useState('phone');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const sendOtp = async () => {
     const normalizedEmail = email.trim().toLowerCase();
+    setError('');
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
-      Alert.alert('Email', 'Please enter a valid email address.');
+      const msg = 'Please enter a valid email address.';
+      setError(msg);
+      showAlert('Email', msg);
       return;
     }
     setLoading(true);
     try {
       await api.sendOtp(normalizedEmail);
       setStage('otp');
-      Alert.alert(t('sendOtp'), 'OTP sent to your email.');
+      showAlert(t('sendOtp'), 'OTP sent to your email.');
     } catch (e) {
-      Alert.alert('Error', e.message || 'Could not reach server. Is the API running?');
+      const msg = e.message || 'Could not reach server. Is the API running?';
+      setError(msg);
+      showAlert('Error', msg);
     } finally {
       setLoading(false);
     }
@@ -43,7 +50,7 @@ export default function LoginScreen({ navigation }) {
         await setSession(res.token, res.user);
       }
     } catch (e) {
-      Alert.alert(t('enterOtp'), e.message || 'Verification failed');
+      showAlert(t('enterOtp'), e.message || 'Verification failed');
     } finally {
       setLoading(false);
     }
@@ -79,7 +86,8 @@ export default function LoginScreen({ navigation }) {
                     onChangeText={setEmail}
                   />
                 </View>
-                <PrimaryButton label={t('sendOtp')} icon="send" onPress={sendOtp} style={{ marginTop: spacing.lg }} />
+                {error ? <Text style={s.error}>{error}</Text> : null}
+                <PrimaryButton label={loading ? 'Sending…' : t('sendOtp')} icon="send" onPress={sendOtp} style={{ marginTop: spacing.lg }} />
               </>
             ) : (
               <>
@@ -144,4 +152,5 @@ const s = StyleSheet.create({
   footerRow: { flexDirection: 'row', marginTop: spacing.xl },
   footerText: { ...font.body, color: colors.primaryLight },
   footerLink: { ...font.bodyBold, color: colors.gold },
+  error: { ...font.small, color: '#c0392b', marginTop: spacing.md, textAlign: 'center' },
 });

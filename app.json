@@ -34,7 +34,7 @@
       "bundler": "metro"
     },
     "extra": {
-      "apiBaseUrl": "https://villageconnect-782o.onrender.com/api",
+      "apiBaseUrl": "http://192.168.1.8:4000/api",
       "eas": {
         "projectId": "aa1bb023-73b4-4ad7-85a9-c15ddace9f81"
       }
